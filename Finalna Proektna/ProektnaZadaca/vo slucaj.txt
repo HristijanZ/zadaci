@@ -1,0 +1,299 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Data.SQLite;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+
+
+namespace Z.AvtorKniga
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+            listView1.View = View.Details;
+            listView1.GridLines = true;
+            listView1.FullRowSelect = true;
+            listView1.Columns.Add("Ime", 70);
+            listView1.Columns.Add("Prezime", 70);
+            listView1.Columns.Add("Godima", 120);
+            listView1.Columns.Add("Klas", 50);
+            listView1.Columns.Add("Makedonski jazik", 70);
+            listView1.Columns.Add("Matematika", 70);
+            listView1.Columns.Add("Fizicko", 70);
+            listView1.Columns.Add("Objektno Orientirano Programiranje", 70);
+            listView1.Columns.Add("Robotika", 70);
+            listView1.Columns.Add("Mikrokompijuteri", 70);
+            listView1.Columns.Add("Bazi na podatoci", 70);
+            listView1.Columns.Add("Mrezi", 70);
+
+            SQLiteConnection sqlite_conn;
+            sqlite_conn = CreateConnection();
+            ReadData(sqlite_conn);
+            sqlite_conn.Close();
+        }
+
+        static SQLiteConnection CreateConnection()
+        {
+
+            SQLiteConnection sqlite_conn;
+            // Create a new database connection:
+            sqlite_conn = new SQLiteConnection("Data Source= C:\\SQLite\\vezbaproba.db; Version = 3; New = True; Compress = True; ");
+            // Open the connection:
+            try
+            {
+                sqlite_conn.Open();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Problem so povrzuvanjeto so bazata");
+            }
+            return sqlite_conn;
+        }
+        void ReadData(SQLiteConnection conn)
+        {
+            SQLiteDataReader sqlite_datareader;
+            SQLiteCommand sqlite_cmd;
+            SQLiteConnection sqlite_conn;
+
+            sqlite_conn = CreateConnection();
+            CreateTable(sqlite_conn);
+            sqlite_cmd = sqlite_conn.CreateCommand();
+
+            sqlite_cmd.CommandText = "SELECT * FROM Licnosti";
+
+            sqlite_datareader = sqlite_cmd.ExecuteReader();
+            listView1.Items.Clear();
+            while (sqlite_datareader.Read())
+            {
+
+                string[] arr = new string[12];
+                ListViewItem itm;
+
+                arr[0] = sqlite_datareader.GetValue(0).ToString();
+                arr[1] = sqlite_datareader.GetValue(1).ToString();
+                arr[2] = sqlite_datareader.GetValue(2).ToString();
+                arr[3] = sqlite_datareader.GetValue(3).ToString();
+                arr[4] = sqlite_datareader.GetValue(4).ToString();
+                arr[5] = sqlite_datareader.GetValue(5).ToString();
+                arr[6] = sqlite_datareader.GetValue(6).ToString();
+                arr[7] = sqlite_datareader.GetValue(7).ToString();
+                arr[8] = sqlite_datareader.GetValue(8).ToString();
+                arr[9] = sqlite_datareader.GetValue(9).ToString();
+                arr[10] = sqlite_datareader.GetValue(10).ToString();
+                arr[11] = sqlite_datareader.GetValue(11).ToString();
+                
+
+                itm = new ListViewItem(arr);
+                listView1.Items.Add(itm);
+            }
+        }
+        static void CreateTable(SQLiteConnection conn)
+        {
+
+            SQLiteCommand sqlite_cmd;
+
+
+            
+                string createTable = "CREATE TABLE IF NOT EXISTS Licnosti (ime VARCHAR(20),prezime VARCHAR(40),godina VARCHAR(40), klas VARCHAR(40), makedonski VARCHAR(40),matematika VARCHAR(40),Fizicko VARCHAR(40),programiranje VARCHAR(40),robotika VARCHAR(40),mikrokompijuteri VARCHAR(40),bazipodatoci VARCHAR(40),mrezi VARCHAR(40))";
+                sqlite_cmd = conn.CreateCommand();
+                sqlite_cmd.CommandText = createTable;
+                sqlite_cmd.ExecuteNonQuery();
+            
+
+        }
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnDodaj_Click(object sender, EventArgs e)
+        {
+            SQLiteConnection sqlite_conn;
+            sqlite_conn = CreateConnection();
+            //CreateTable(sqlite_conn);
+
+            try
+            {
+                SQLiteCommand cmd;
+                cmd = sqlite_conn.CreateCommand();
+
+                cmd.CommandText = @"INSERT INTO Licnosti(ime, prezime, godina, klas, makedonski, matematika, Fizicko, programiranje, robotika, mikrokompijuteri, bazipodatoci, mrezi) VALUES (@Ime, @Prezime, @Godina, @Klas, @Makedonskijazik, @Matematika, @Fizicko, @ObjektnoOrientiranoProgramiranje, @Robotika, @Mikrokompijuteri, @Bazinapodatoci, @Mrezi)";
+                cmd.Parameters.AddWithValue("@Ime", tbIme.Text);
+                cmd.Parameters.AddWithValue("@Prezime", tbprezime.Text);
+                cmd.Parameters.AddWithValue("@Godina", tbgodina.Text);
+                cmd.Parameters.AddWithValue("@Klas", tbklas.Text);
+                cmd.Parameters.AddWithValue("@Makedonskijazik", tbmakedonski.Text);
+                cmd.Parameters.AddWithValue("@Matematika", tbmatematika.Text);
+                cmd.Parameters.AddWithValue("@Fizicko", tbfizicko.Text);
+                cmd.Parameters.AddWithValue("ObjektnoOrientiranoProgramiranje", tbprogramiranje.Text);
+                cmd.Parameters.AddWithValue("@Robotika", tbrobotika.Text);
+                cmd.Parameters.AddWithValue("@Mikrokompijuteri", tbmikro.Text);
+                cmd.Parameters.AddWithValue("Bazinapodatoci", tbbazi.Text);
+                cmd.Parameters.AddWithValue("@Mrezi", tbmrezi.Text);
+                cmd.ExecuteNonQuery();
+               
+                ReadData(sqlite_conn);
+                sqlite_conn.Close();
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show("ima problem" + ex.ToString());
+            }
+        }
+
+        private void btnPrebarajGodina_Click(object sender, EventArgs e)
+        {
+            SQLiteConnection sqlite_conn;
+            sqlite_conn = CreateConnection();
+            //CreateTable(sqlite_conn);
+
+            SQLiteDataReader sqlite_datareader;
+            SQLiteCommand sqlite_cmd;
+            sqlite_cmd = sqlite_conn.CreateCommand();
+
+
+            //citanje po odreden kriterium na primer po vozrast
+            sqlite_cmd.CommandText = "SELECT * FROM Licnosti WHERE godina=" + tbprebarajgodina.Text;
+            sqlite_datareader = sqlite_cmd.ExecuteReader();
+            listView1.Items.Clear();
+            while (sqlite_datareader.Read())
+            {
+                string[] arr = new string[12];
+                ListViewItem itm;
+
+                arr[0] = sqlite_datareader.GetValue(0).ToString();
+                arr[1] = sqlite_datareader.GetValue(1).ToString();
+                arr[2] = sqlite_datareader.GetValue(2).ToString();
+                arr[3] = sqlite_datareader.GetValue(3).ToString();
+                arr[4] = sqlite_datareader.GetValue(4).ToString();
+                arr[5] = sqlite_datareader.GetValue(5).ToString();
+                arr[6] = sqlite_datareader.GetValue(6).ToString();
+                arr[7] = sqlite_datareader.GetValue(7).ToString();
+                arr[8] = sqlite_datareader.GetValue(8).ToString();
+                arr[9] = sqlite_datareader.GetValue(9).ToString();
+                arr[10] = sqlite_datareader.GetValue(10).ToString();
+                arr[11] = sqlite_datareader.GetValue(11).ToString();
+
+
+                itm = new ListViewItem(arr);
+                listView1.Items.Add(itm);
+            }
+            sqlite_conn.Close();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            SQLiteConnection sqlite_conn;
+            sqlite_conn = CreateConnection();
+            //CreateTable(sqlite_conn);
+
+            SQLiteDataReader sqlite_datareader;
+            SQLiteCommand sqlite_cmd;
+            sqlite_cmd = sqlite_conn.CreateCommand();
+
+
+            //citanje po odreden kriterium na primer po vozrast
+            sqlite_cmd.CommandText = "SELECT * FROM Licnosti WHERE klas=" + tbprebarajklas.Text;
+            sqlite_datareader = sqlite_cmd.ExecuteReader();
+            listView1.Items.Clear();
+            while (sqlite_datareader.Read())
+            {
+                string[] arr = new string[12];
+                ListViewItem itm;
+
+                arr[0] = sqlite_datareader.GetValue(0).ToString();
+                arr[1] = sqlite_datareader.GetValue(1).ToString();
+                arr[2] = sqlite_datareader.GetValue(2).ToString();
+                arr[3] = sqlite_datareader.GetValue(3).ToString();
+                arr[4] = sqlite_datareader.GetValue(4).ToString();
+                arr[5] = sqlite_datareader.GetValue(5).ToString();
+                arr[6] = sqlite_datareader.GetValue(6).ToString();
+                arr[7] = sqlite_datareader.GetValue(7).ToString();
+                arr[8] = sqlite_datareader.GetValue(8).ToString();
+                arr[9] = sqlite_datareader.GetValue(9).ToString();
+                arr[10] = sqlite_datareader.GetValue(10).ToString();
+                arr[11] = sqlite_datareader.GetValue(11).ToString();
+
+
+                itm = new ListViewItem(arr);
+                listView1.Items.Add(itm);
+            }
+            sqlite_conn.Close();
+        }
+
+        private void btnprebarajime_Click(object sender, EventArgs e)
+        {
+            SQLiteConnection sqlite_conn;
+            sqlite_conn = CreateConnection();
+            SQLiteDataReader sqlite_datareader;
+            SQLiteCommand sqlite_cmd;
+            sqlite_cmd = sqlite_conn.CreateCommand();
+
+            // Use parameterized query to avoid SQL injection
+            sqlite_cmd.CommandText = "SELECT * FROM Licnosti WHERE ime=@ime";
+            sqlite_cmd.Parameters.AddWithValue("@ime", tbprebarajime.Text); // Assuming tbprebarajprezime.Text contains the desired prezime value
+
+            sqlite_datareader = sqlite_cmd.ExecuteReader();
+            listView1.Items.Clear();
+            while (sqlite_datareader.Read())
+            {
+                string[] arr = new string[12];
+                ListViewItem itm;
+
+                // Populate arr array with column values
+                for (int i = 0; i < 12; i++)
+                {
+                    arr[i] = sqlite_datareader.GetValue(i).ToString();
+                }
+
+                itm = new ListViewItem(arr);
+                listView1.Items.Add(itm);
+            }
+            sqlite_conn.Close();
+        }
+
+        private void btnPrezimepobaraj_Click(object sender, EventArgs e)
+        {
+            SQLiteConnection sqlite_conn;
+            sqlite_conn = CreateConnection();
+            SQLiteDataReader sqlite_datareader;
+            SQLiteCommand sqlite_cmd;
+            sqlite_cmd = sqlite_conn.CreateCommand();
+
+            // Use parameterized query to avoid SQL injection
+            sqlite_cmd.CommandText = "SELECT * FROM Licnosti WHERE prezime=@prezime";
+            sqlite_cmd.Parameters.AddWithValue("@prezime", tbprebarajprezime.Text); // Assuming tbprebarajprezime.Text contains the desired prezime value
+
+            sqlite_datareader = sqlite_cmd.ExecuteReader();
+            listView1.Items.Clear();
+            while (sqlite_datareader.Read())
+            {
+                string[] arr = new string[12];
+                ListViewItem itm;
+
+                // Populate arr array with column values
+                for (int i = 0; i < 12; i++)
+                {
+                    arr[i] = sqlite_datareader.GetValue(i).ToString();
+                }
+
+                itm = new ListViewItem(arr);
+                listView1.Items.Add(itm);
+            }
+            sqlite_conn.Close();
+        }
+
+        private void btnBrisi_Click(object sender, EventArgs e)
+        {
+            
+        }
+    }
+}
